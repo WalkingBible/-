@@ -1,8 +1,9 @@
+<!오타 전체적으로 수정, 버튼 위치 수정>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>요한계시록 암기 도구</title>
+    <title>요한계시록 암기 타이핑 앱</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React Libraries -->
@@ -84,6 +85,35 @@
         
         // --- Main Application Component ---
         const RevelationTypingApp = () => {
+          // --- Korean Jamo Decomposer ---
+          const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+          const JUNGSEONG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+          const JONGSEONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+          const KOREAN_START_CODE = 44032; // '가'
+          const KOREAN_END_CODE = 55203; // '힣'
+
+          const decomposeToJamo = (text) => {
+              let jamo = '';
+              for (let i = 0; i < text.length; i++) {
+                  const charCode = text.charCodeAt(i);
+                  if (charCode >= KOREAN_START_CODE && charCode <= KOREAN_END_CODE) {
+                      const index = charCode - KOREAN_START_CODE;
+                      const choseongIndex = Math.floor(index / (21 * 28));
+                      const jungseongIndex = Math.floor((index % (21 * 28)) / 28);
+                      const jongseongIndex = index % 28;
+                      
+                      jamo += CHOSEONG[choseongIndex];
+                      jamo += JUNGSEONG[jungseongIndex];
+                      if (jongseongIndex > 0) {
+                          jamo += JONGSEONG[jongseongIndex];
+                      }
+                  } else {
+                      jamo += text[i];
+                  }
+              }
+              return jamo;
+          };
+
           // 요한계시록 본문 데이터 (개역한글)
           // Full 22 chapters of Revelation
           const revelationText = {
@@ -658,7 +688,7 @@
             const matching = [];
             let refIndex = 0;
             let typedIndex = 0;
-            const lookahead = 4; // Reduced lookahead to prevent jumping over large incorrect chunks
+            const lookahead = 20; // Increased lookahead to handle larger skips
 
             while (refIndex < refChars.length || typedIndex < typedChars.length) {
                 if (refIndex < refChars.length && typedIndex < typedChars.length && refChars[refIndex] === typedChars[typedIndex]) {
@@ -765,16 +795,28 @@
 
           const getTypingStyle = (reference, typed) => {
             const typedText = typed || '';
+
+            // Jamo-based prefix check for Korean live typing
+            const refJamo = decomposeToJamo(reference);
+            const typedJamo = decomposeToJamo(typedText);
+
+            if (refJamo.startsWith(typedJamo)) {
+                // If the typed text is a valid Jamo prefix, don't show any errors.
+                // This handles intermediate typing states in Korean like '옝' for '예언'.
+                return <span>{typedText}</span>;
+            }
+
+            // If it's not a valid prefix, an error has occurred. Fall back to the advanced matching.
             const matching = getAdvancedMatching(reference, typedText);
             const styles = {}; // Use an object as a map from index to className
 
             matching.forEach(match => {
                 if (match.typedIndex !== -1 && match.status === 'extra') {
-                    // Only 'extra' characters need special styling in the typing view.
+                    // Mark 'extra' characters to be styled.
                     styles[match.typedIndex] = 'text-red-500 line-through bg-red-100';
                 }
             });
-
+            
             // Always render the character that was actually typed.
             return typedText.split('').map((char, i) => (
                 <span key={`typed-${i}`} className={styles[i] || ''}>
@@ -820,7 +862,7 @@
           const currentVerses = revelationText[currentChapter] || {};
 
           return (
-              <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-white min-h-screen">
+              <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-white min-h-screen pb-24">
                   <header className="mb-6 border-b pb-6">
                       <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">
                           요한계시록 암기 타이핑
@@ -841,25 +883,6 @@
                                   </option>
                               ))}
                           </select>
-                          
-                          <button onClick={() => setShowReference(!showReference)} className="flex items-center gap-2 px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 smooth-transition text-sm sm:text-base">
-                              {showReference ? <EyeOff /> : <Eye />}
-                              {showReference ? '본문 숨기기' : '본문 보기'}
-                          </button>
-                          
-                          <button onClick={toggleRandomBlanks} className={`flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm sm:text-base ${
-                            showBlanks 
-                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                              : 'bg-green-500 text-white hover:bg-green-600'
-                          }`}>
-                              <Shuffle />
-                              {showBlanks ? '빈칸 해제' : '랜덤 빈칸'}
-                          </button>
-                          
-                          <button onClick={resetTyping} className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 smooth-transition text-sm sm:text-base">
-                              <RotateCcw />
-                              초기화
-                          </button>
                       </div>
                   </header>
 
@@ -898,11 +921,31 @@
                       )}
                   </main>
                   
-                  <footer className="fixed bottom-0 left-0 right-0 flex justify-center p-4 bg-white/80 backdrop-blur-sm border-t">
-                      <div className="bg-blue-100 px-6 py-2 rounded-full shadow">
-                          <span className="text-lg font-semibold text-blue-800">
-                              암기율: {accuracy}%
-                          </span>
+                  <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t">
+                      <div className="max-w-4xl mx-auto flex flex-wrap gap-2 justify-center items-center">
+                          <button onClick={() => setShowReference(!showReference)} className="flex items-center gap-2 px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 smooth-transition text-sm sm:text-base">
+                              {showReference ? <EyeOff /> : <Eye />}
+                              {showReference ? '본문 숨기기' : '본문 보기'}
+                          </button>
+                          
+                          <button onClick={toggleRandomBlanks} className={`flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm sm:text-base ${
+                            showBlanks 
+                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                              : 'bg-green-500 text-white hover:bg-green-600'
+                          }`}>
+                              <Shuffle />
+                              {showBlanks ? '빈칸 해제' : '랜덤 빈칸'}
+                          </button>
+                          
+                          <button onClick={resetTyping} className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 smooth-transition text-sm sm:text-base">
+                              <RotateCcw />
+                              초기화
+                          </button>
+                          <div className="bg-blue-100 px-6 py-2 rounded-full shadow">
+                              <span className="text-lg font-semibold text-blue-800">
+                                  암기율: {accuracy}%
+                              </span>
+                          </div>
                       </div>
                   </footer>
               </div>
@@ -914,4 +957,3 @@
     </script>
 </body>
 </html>
-
