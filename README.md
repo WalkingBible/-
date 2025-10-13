@@ -1,4 +1,4 @@
-<추석에도 외우는 당신! 최고입니다! 화이팅>
+<먼저 100% 인맞자!>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
