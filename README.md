@@ -1,4 +1,4 @@
-<먼저 100% 인맞자!>
+<먼저 100퍼센트 인맞자!>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
