@@ -1,4 +1,5 @@
    <"계시록을 가지고 다니지 말고, 마음에 기록하면 될 것이다. 어렵지 않다">
+   <"줄 바뀔 때 텍스트 커서가 멀어지는 현상 해결, 한꺼번에 타이핑 하는 고수모두 추가>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -30,67 +31,39 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // --- Icon Components (replaces lucide-react) ---
         const IconWrapper = ({ children, size = 20, className = "" }) => (
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width={size}
-                height={size}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={className}
-            >
-                {children}
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
         );
+        const Eye = (props) => (<IconWrapper {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconWrapper>);
+        const EyeOff = (props) => (<IconWrapper {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" x2="22" y1="2" y2="22" /></IconWrapper>);
+        const Shuffle = (props) => (<IconWrapper {...props}><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" /><path d="m18 2 4 4-4 4" /><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2" /><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8" /><path d="m18 22-4-4 4-4" /></IconWrapper>);
+        const RotateCcw = (props) => (<IconWrapper {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></IconWrapper>);
+        const ChevronsRight = (props) => (<IconWrapper {...props}><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></IconWrapper>);
+        const Edit3 = (props) => (<IconWrapper {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></IconWrapper>);
 
-        const Eye = (props) => (
-            <IconWrapper {...props}>
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-            </IconWrapper>
-        );
-
-        const EyeOff = (props) => (
-            <IconWrapper {...props}>
-                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                <line x1="2" x2="22" y1="2" y2="22" />
-            </IconWrapper>
-        );
-        
-        const Shuffle = (props) => (
-            <IconWrapper {...props}>
-                <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" />
-                <path d="m18 2 4 4-4 4" />
-                <path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2" />
-                <path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8" />
-                <path d="m18 22-4-4 4-4" />
-            </IconWrapper>
-        );
-
-        const RotateCcw = (props) => (
-            <IconWrapper {...props}>
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-            </IconWrapper>
-        );
         
         // --- Main Application Component ---
         const RevelationTypingApp = () => {
+          // --- State Management ---
+          const [currentChapter, setCurrentChapter] = useState(1);
+          const [typingTexts, setTypingTexts] = useState({});
+          const [showReference, setShowReference] = useState(true);
+          const [randomBlanks, setRandomBlanks] = useState({});
+          const [showBlanks, setShowBlanks] = useState(false);
+          const [accuracy, setAccuracy] = useState(0);
+          const [mode, setMode] = useState('verse');
+          const [expertText, setExpertText] = useState('');
+          const [expertResult, setExpertResult] = useState(null);
+
           // --- Korean Jamo Decomposer ---
           const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
           const JUNGSEONG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
           const JONGSEONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-          const KOREAN_START_CODE = 44032; // '가'
-          const KOREAN_END_CODE = 55203; // '힣'
+          const KOREAN_START_CODE = 44032;
+          const KOREAN_END_CODE = 55203;
 
           const decomposeToJamo = (text) => {
               let jamo = '';
@@ -101,21 +74,24 @@
                       const choseongIndex = Math.floor(index / (21 * 28));
                       const jungseongIndex = Math.floor((index % (21 * 28)) / 28);
                       const jongseongIndex = index % 28;
-                      
                       jamo += CHOSEONG[choseongIndex];
                       jamo += JUNGSEONG[jungseongIndex];
-                      if (jongseongIndex > 0) {
-                          jamo += JONGSEONG[jongseongIndex];
-                      }
+                      if (jongseongIndex > 0) jamo += JONGSEONG[jongseongIndex];
                   } else {
                       jamo += text[i];
                   }
               }
               return jamo;
           };
+          
+          const isKoreanTypingInProgress = (ref, typed) => {
+              if (!typed || !ref) return false;
+              const refJamo = decomposeToJamo(ref.substring(0, typed.length + 2));
+              const typedJamo = decomposeToJamo(typed);
+              return refJamo.startsWith(typedJamo);
+          };
 
-          // 요한계시록 본문 데이터 (개역한글)
-          // Full 22 chapters of Revelation
+          // --- Data & Memoization ---
           const revelationText = {
             1: {
                 1: "예수 그리스도의 계시라 이는 하나님이 그에게 주사 반드시 속히 될 일을 그 종들에게 보이시려고 그 천사를 그 종 요한에게 보내어 지시하신 것이라",
@@ -567,383 +543,310 @@
                 21: "주 예수의 은혜가 모든 자들에게 있을찌어다 아멘"
             }
           };
+          const currentVerses = revelationText[currentChapter] || {};
+          const expertReferenceText = useMemo(() => {
+              // Expert mode now includes verse numbers and newlines
+              return Object.entries(currentVerses)
+                  .map(([verse, text]) => `${verse} ${text}`)
+                  .join('\n');
+          }, [currentVerses]);
 
-          // To make the dropdown complete, create keys for all chapters, even if empty.
-          for (let i = 1; i <= 22; i++) {
-              if (!revelationText[i]) {
-                  revelationText[i] = { 1: `요한계시록 ${i}장 본문이 여기에 추가됩니다.` };
-              }
-          }
-
-          const [currentChapter, setCurrentChapter] = useState(1);
-          const [typingTexts, setTypingTexts] = useState({});
-          const [showReference, setShowReference] = useState(true);
-          const [randomBlanks, setRandomBlanks] = useState({});
-          const [showBlanks, setShowBlanks] = useState(false);
-          const [accuracy, setAccuracy] = useState(0);
-
+          // --- Effects ---
           useEffect(() => {
-              const currentVerses = revelationText[currentChapter] || {};
               const initialTypingTexts = {};
-              Object.keys(currentVerses).forEach(verse => {
-                  initialTypingTexts[verse] = '';
-              });
+              Object.keys(currentVerses).forEach(verse => { initialTypingTexts[verse] = ''; });
               setTypingTexts(initialTypingTexts);
               setRandomBlanks({});
               setShowBlanks(false);
+              setExpertText('');
+              setExpertResult(null);
           }, [currentChapter]);
 
           useEffect(() => {
-              const currentVerses = revelationText[currentChapter] || {};
+              if (mode !== 'verse') return;
               let totalChars = 0;
               let correctChars = 0;
-
               Object.keys(currentVerses).forEach(verse => {
                   const reference = currentVerses[verse];
                   const typed = typingTexts[verse] || '';
-                  
                   totalChars += reference.length;
-                  
                   if (typed.trim()) {
                       const matching = getAdvancedMatching(reference, typed);
-                      matching.forEach(m => {
-                        if (m.status === 'correct') {
-                            correctChars++;
-                        }
-                      });
+                      correctChars += matching.filter(m => m.status === 'correct').length;
                   }
               });
-
               setAccuracy(totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 0);
-          }, [typingTexts, currentChapter]);
+          }, [typingTexts, currentChapter, mode]);
 
-          const toggleRandomBlanks = () => {
-              if (showBlanks) {
-                  setShowBlanks(false);
-                  setRandomBlanks({});
-              } else {
-                  const currentVerses = revelationText[currentChapter] || {};
-                  const newBlanks = {};
-                  
-                  Object.keys(currentVerses).forEach(verse => {
-                      const text = currentVerses[verse];
-                      const words = text.split(' ');
-                      const blankIndices = [];
-                      
-                      const blankCount = Math.floor(words.length * 0.45);
-                      
-                      while (blankIndices.length < blankCount && blankIndices.length < words.length) {
-                          const randomIndex = Math.floor(Math.random() * words.length);
-                          if (!blankIndices.includes(randomIndex)) {
-                              blankIndices.push(randomIndex);
+
+          // --- Event Handlers & Logic ---
+          const getAdvancedMatching = (reference, typed) => {
+              const refChars = reference.split('');
+              const typedChars = typed.split('');
+              const matching = [];
+              let refIndex = 0;
+              let typedIndex = 0;
+              const lookahead = 20;
+
+              while (refIndex < refChars.length || typedIndex < typedChars.length) {
+                  if (refIndex < refChars.length && typedIndex < typedChars.length && refChars[refIndex] === typedChars[typedIndex]) {
+                      matching.push({ status: 'correct', refIndex, typedIndex, char: refChars[refIndex] });
+                      refIndex++;
+                      typedIndex++;
+                  } else {
+                      let foundMatch = false;
+                      for (let look = 1; look <= lookahead; look++) {
+                          if (refIndex + look < refChars.length && typedIndex < typedChars.length && refChars[refIndex + look] === typedChars[typedIndex]) {
+                              for(let i=0; i<look; i++) matching.push({ status: 'missing', refIndex: refIndex + i, typedIndex: -1, char: refChars[refIndex + i] });
+                              matching.push({ status: 'correct', refIndex: refIndex + look, typedIndex, char: refChars[refIndex + look] });
+                              refIndex += look + 1;
+                              typedIndex++;
+                              foundMatch = true;
+                              break;
+                          }
+                          if (typedIndex + look < typedChars.length && refIndex < refChars.length && typedChars[typedIndex + look] === refChars[refIndex]) {
+                              for(let i=0; i<look; i++) matching.push({ status: 'extra', refIndex: -1, typedIndex: typedIndex + i, char: typedChars[typedIndex + i] });
+                              matching.push({ status: 'correct', refIndex, typedIndex: typedIndex + look, char: refChars[refIndex] });
+                              refIndex++;
+                              typedIndex += look + 1;
+                              foundMatch = true;
+                              break;
                           }
                       }
-                      
-                      newBlanks[verse] = blankIndices;
-                  });
-                  
-                  setRandomBlanks(newBlanks);
-                  setShowBlanks(true);
+                      if (!foundMatch) {
+                          if (refIndex < refChars.length) {
+                              matching.push({ status: 'wrong', refIndex, typedIndex: typedIndex < typedChars.length ? typedIndex : -1, char: refChars[refIndex] });
+                              refIndex++;
+                          }
+                          if (typedIndex < typedChars.length) {
+                              if (!matching.find(m => m.typedIndex === typedIndex)) {
+                                 matching.push({ status: 'extra', refIndex: -1, typedIndex, char: typedChars[typedIndex] });
+                              }
+                              typedIndex++;
+                          }
+                      }
+                  }
               }
+              return matching;
           };
-
-          // Hybrid text matching algorithm
-          const getAdvancedMatching = (reference, typed) => {
-            const refChars = [...reference];
-            const typedChars = [...typed];
-
-            // Special case for partial input: typing the beginning and end, skipping the middle.
-            const isPartialInput = typedChars.length > 3 && typedChars.length < refChars.length * 0.8;
-            if (isPartialInput) {
-                let frontMatch = 0;
-                while (frontMatch < typedChars.length && frontMatch < refChars.length && refChars[frontMatch] === typedChars[frontMatch]) {
-                    frontMatch++;
-                }
-
-                let backMatch = 0;
-                while (backMatch < (typedChars.length - frontMatch) && backMatch < (refChars.length - frontMatch) &&
-                       refChars[refChars.length - 1 - backMatch] === typedChars[typedChars.length - 1 - backMatch]) {
-                    backMatch++;
-                }
-
-                // Trigger this logic only if there's a significant middle part skipped
-                if (frontMatch > 0 && backMatch > 0 && (frontMatch + backMatch) >= typedChars.length * 0.8 && (refChars.length - (frontMatch + backMatch)) > 2) {
-                    const matching = [];
-                    for (let i = 0; i < frontMatch; i++) {
-                        matching.push({ status: 'correct', refIndex: i, typedIndex: i, char: refChars[i] });
-                    }
-                    for (let i = frontMatch; i < refChars.length - backMatch; i++) {
-                        matching.push({ status: 'missing', refIndex: i, typedIndex: -1, char: refChars[i] });
-                    }
-                    for (let i = 0; i < backMatch; i++) {
-                        const refIdx = refChars.length - backMatch + i;
-                        const typedIdx = typedChars.length - backMatch + i;
-                        matching.push({ status: 'correct', refIndex: refIdx, typedIndex: typedIdx, char: refChars[refIdx] });
-                    }
-                    return matching;
-                }
-            }
-            
-            // Default sequential matching for smaller errors
-            const matching = [];
-            let refIndex = 0;
-            let typedIndex = 0;
-            const lookahead = 20; // Increased lookahead to handle larger skips
-
-            while (refIndex < refChars.length || typedIndex < typedChars.length) {
-                if (refIndex < refChars.length && typedIndex < typedChars.length && refChars[refIndex] === typedChars[typedIndex]) {
-                    matching.push({ status: 'correct', refIndex, typedIndex, char: refChars[refIndex] });
-                    refIndex++;
-                    typedIndex++;
-                } else {
-                    let foundInRef = -1;
-                    let foundInTyped = -1;
-
-                    // Find next sync point for typed char in reference
-                    if(typedIndex < typedChars.length){
-                        for (let i = 1; i <= lookahead && refIndex + i < refChars.length; i++) {
-                            if (refChars[refIndex + i] === typedChars[typedIndex]) {
-                                foundInRef = i;
-                                break;
-                            }
-                        }
-                    }
-                    // Find next sync point for reference char in typed
-                    if(refIndex < refChars.length){
-                        for (let i = 1; i <= lookahead && typedIndex + i < typedChars.length; i++) {
-                            if (typedChars[typedIndex + i] === refChars[refIndex]) {
-                                foundInTyped = i;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Choose the path with the shortest skip
-                    if (foundInRef !== -1 && (foundInRef <= foundInTyped || foundInTyped === -1)) {
-                        for (let i = 0; i < foundInRef; i++) {
-                            matching.push({ status: 'missing', refIndex: refIndex + i, typedIndex: -1, char: refChars[refIndex + i] });
-                        }
-                        refIndex += foundInRef;
-                    } else if (foundInTyped !== -1) {
-                        for (let i = 0; i < foundInTyped; i++) {
-                            matching.push({ status: 'extra', refIndex: -1, typedIndex: typedIndex + i, char: typedChars[typedIndex + i] });
-                        }
-                        typedIndex += foundInTyped;
-                    } else { // No sync point in lookahead, assume substitution
-                        if (refIndex < refChars.length) {
-                            // The original character is 'missing'
-                            matching.push({ status: 'missing', refIndex: refIndex, typedIndex: -1, char: refChars[refIndex] });
-                            refIndex++;
-                        }
-                        if (typedIndex < typedChars.length) {
-                            // The typed character is 'extra'
-                             matching.push({ status: 'extra', refIndex: -1, typedIndex: typedIndex, char: typedChars[typedIndex] });
-                            typedIndex++;
-                        }
-                    }
-                }
-            }
-            return matching;
-        };
-
+          
           const getStyledText = (reference, typed, verse) => {
-              if (!showReference && !showBlanks) return null;
-              
+              if (mode !== 'verse' || (!showReference && !showBlanks)) return '';
+
               if (showBlanks && randomBlanks[verse]) {
-                const words = reference.split(/(\s+)/); // Split by space but keep spaces
-                const blankIndices = randomBlanks[verse];
-                let wordIndex = 0;
-                
-                return words.map((word, i) => {
-                    if (word.trim() === '') {
-                        return <span key={`space-${i}`}>{word}</span>;
-                    }
-                    const currentWordIndex = wordIndex;
-                    wordIndex++;
-                    if (blankIndices.includes(currentWordIndex)) {
-                        const typedWords = typed.split(' ');
-                        const isCorrect = typedWords[currentWordIndex] === word;
-                        if(isCorrect) {
-                            return <span key={`word-${i}`} className="text-blue-600 bg-blue-100 rounded px-1">{word}</span>;
-                        }
-                        return <span key={`blank-${i}`} className="bg-gray-200 text-gray-200 rounded px-1">{"_".repeat(word.length)}</span>;
-                    }
-                    return <span key={`word-${i}`}>{word}</span>;
-                });
+                  const words = reference.split(' ');
+                  const blankIndices = randomBlanks[verse];
+                  const styledWords = [];
+                  let typedWords = typed.split(/\s+/);
 
-              } else if (showReference) {
-                const matching = getAdvancedMatching(reference, typed || '');
-                const styledChars = Array.from({ length: reference.length });
-
-                matching.forEach(match => {
-                    if (match.refIndex !== -1) {
-                        let className = '';
-                        switch (match.status) {
-                            case 'correct': className = 'text-blue-600 bg-blue-100'; break;
-                            case 'wrong':
-                            case 'missing': className = 'text-red-500 bg-red-100'; break;
-                        }
-                        styledChars[match.refIndex] = <span key={`ref-${match.refIndex}`} className={className}>{match.char}</span>;
-                    }
-                });
-
-                return reference.split('').map((char, i) => styledChars[i] || <span key={`ref-${i}`}>{char}</span>);
+                  words.forEach((word, wordIndex) => {
+                      if (blankIndices.includes(wordIndex)) {
+                          if (typedWords[wordIndex] && typedWords[wordIndex] === word) {
+                              styledWords.push(<span key={`blank-filled-${verse}-${wordIndex}`} className="text-blue-600 bg-blue-100">{word}</span>);
+                          } else {
+                              styledWords.push(<span key={`blank-${verse}-${wordIndex}`} className="bg-gray-200 text-gray-200 rounded px-1">{"_".repeat(word.length)}</span>);
+                          }
+                      } else {
+                          styledWords.push(<span key={`word-${verse}-${wordIndex}`}>{word}</span>);
+                      }
+                      if (wordIndex < words.length - 1) {
+                          styledWords.push(<span key={`space-${verse}-${wordIndex}`}> </span>);
+                      }
+                  });
+                  return styledWords;
+              }
+              
+              if (showReference) {
+                  const matching = getAdvancedMatching(reference, typed);
+                  return reference.split('').map((char, i) => {
+                      const matchInfo = matching.find(m => m.refIndex === i);
+                      let className = 'text-gray-400';
+                      if (matchInfo) {
+                          switch (matchInfo.status) {
+                              case 'correct': className = 'text-blue-600 bg-blue-100'; break;
+                              case 'wrong': case 'missing': className = 'text-red-500 bg-red-100'; break;
+                          }
+                      }
+                      return <span key={`ref-${verse}-${i}`} className={className}>{char}</span>;
+                  });
               }
 
-              return null;
+              return '';
           };
 
           const getTypingStyle = (reference, typed) => {
-            const typedText = typed || '';
-
-            // Jamo-based prefix check for Korean live typing
-            const refJamo = decomposeToJamo(reference);
-            const typedJamo = decomposeToJamo(typedText);
-
-            if (refJamo.startsWith(typedJamo)) {
-                // If the typed text is a valid Jamo prefix, don't show any errors.
-                // This handles intermediate typing states in Korean like '옝' for '예언'.
-                return <span>{typedText}</span>;
-            }
-
-            // If it's not a valid prefix, an error has occurred. Fall back to the advanced matching.
-            const matching = getAdvancedMatching(reference, typedText);
-            const styles = {}; // Use an object as a map from index to className
-
-            matching.forEach(match => {
-                if (match.typedIndex !== -1 && match.status === 'extra') {
-                    // Mark 'extra' characters to be styled.
-                    styles[match.typedIndex] = 'text-red-500 line-through bg-red-100';
-                }
-            });
-            
-            // Always render the character that was actually typed.
-            return typedText.split('').map((char, i) => (
-                <span key={`typed-${i}`} className={styles[i] || ''}>
-                    {char}
-                </span>
-            ));
+              if (isKoreanTypingInProgress(reference, typed)) {
+                  return <span>{typed}</span>;
+              }
+              const matching = getAdvancedMatching(reference, typed);
+              return typed.split('').map((char, i) => {
+                  const matchInfo = matching.find(m => m.typedIndex === i);
+                  let className = 'text-black';
+                  if (matchInfo && (matchInfo.status === 'extra' || matchInfo.status === 'wrong')) {
+                      className = 'text-red-500 line-through bg-red-100';
+                  }
+                  return <span key={`typed-${i}`} className={className}>{char}</span>;
+              });
           };
 
           const handleTypingChange = (verse, value) => {
-              setTypingTexts(prev => ({
-                  ...prev,
-                  [verse]: value
-              }));
+              setTypingTexts(prev => ({ ...prev, [verse]: value }));
           };
 
           const handleKeyDown = (e, currentVerse) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  
-                  const currentVerses = revelationText[currentChapter] || {};
                   const verses = Object.keys(currentVerses).map(Number).sort((a, b) => a - b);
                   const currentIndex = verses.indexOf(parseInt(currentVerse));
-                  
                   if (currentIndex < verses.length - 1) {
                       const nextVerse = verses[currentIndex + 1];
-                      const nextTextarea = document.querySelector(`textarea[data-verse="${nextVerse}"]`);
-                      if (nextTextarea) {
-                          nextTextarea.focus();
-                      }
+                      document.querySelector(`[data-verse="${nextVerse}"]`)?.focus();
                   }
               }
           };
 
           const resetTyping = () => {
-              const currentVerses = revelationText[currentChapter] || {};
               const resetTexts = {};
-              Object.keys(currentVerses).forEach(verse => {
-                  resetTexts[verse] = '';
-              });
+              Object.keys(currentVerses).forEach(verse => { resetTexts[verse] = ''; });
               setTypingTexts(resetTexts);
+              setExpertText('');
+              setExpertResult(null);
+          };
+          
+          const toggleRandomBlanks = () => {
+              if (showBlanks) {
+                  setShowBlanks(false);
+                  setRandomBlanks({});
+              } else {
+                  const newBlanks = {};
+                  Object.keys(currentVerses).forEach(verse => {
+                      const text = currentVerses[verse];
+                      const words = text.split(' ');
+                      const blankIndices = [];
+                      const blankCount = Math.floor(words.length * 0.45);
+                      while (blankIndices.length < blankCount) {
+                          const randomIndex = Math.floor(Math.random() * words.length);
+                          if (!blankIndices.includes(randomIndex)) {
+                              blankIndices.push(randomIndex);
+                          }
+                      }
+                      newBlanks[verse] = blankIndices;
+                  });
+                  setRandomBlanks(newBlanks);
+                  setShowBlanks(true);
+                  setShowReference(true);
+              }
           };
 
-          const currentVerses = revelationText[currentChapter] || {};
+          const toggleMode = () => {
+              setMode(prevMode => (prevMode === 'verse' ? 'expert' : 'verse'));
+              resetTyping();
+          };
 
+          const handleExpertCheck = () => {
+              const matching = getAdvancedMatching(expertReferenceText, expertText);
+              const styledResult = expertReferenceText.split('').map((char, i) => {
+                  if (char === '\n') return <br key={`res-${i}`} />;
+                  const matchInfo = matching.find(m => m.refIndex === i);
+                  let className = 'text-gray-400';
+                  if (matchInfo) {
+                      switch (matchInfo.status) {
+                          case 'correct': className = 'text-blue-600 bg-blue-100'; break;
+                          case 'wrong': case 'missing': className = 'text-red-500 bg-red-100'; break;
+                      }
+                  }
+                  return <span key={`res-${i}`} className={className}>{char}</span>;
+              });
+              setExpertResult(styledResult);
+          };
+
+          // --- Render ---
           return (
               <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-white min-h-screen pb-24">
                   <header className="mb-6 border-b pb-6">
-                      <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">
-                          요한계시록 암기 타이핑
-                      </h1>
-                      <p className="text-center text-gray-500">
-                          말씀을 타이핑하며 암송하고 묵상하는 시간
-                      </p>
-                      
+                      <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">요한계시록 암기 타이핑</h1>
+                      <p className="text-center text-gray-500">말씀을 타이핑하며 암송하고 묵상하는 시간</p>
                       <div className="mt-6 flex flex-wrap gap-2 justify-center items-center">
-                          <select 
-                              value={currentChapter} 
-                              onChange={(e) => setCurrentChapter(parseInt(e.target.value))}
-                              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                          >
-                              {Object.keys(revelationText).map(chapter => (
-                                  <option key={chapter} value={chapter}>
-                                      {chapter}장
-                                  </option>
+                          <select value={currentChapter} onChange={(e) => setCurrentChapter(parseInt(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                              {Array.from({ length: 22 }, (_, i) => i + 1).map(chapter => (
+                                  <option key={chapter} value={chapter}>{chapter}장</option>
                               ))}
                           </select>
                       </div>
                   </header>
 
                   <main className="space-y-6">
-                      {Object.keys(currentVerses).length > 0 ? (
-                        Object.entries(currentVerses).map(([verse, text]) => (
-                            <div key={verse} className="border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm bg-white">
-                                <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-3">
-                                    계시록 {currentChapter}:{verse}
-                                </h3>
-                                
-                                <div className="mb-3 p-4 bg-gray-50 rounded-lg min-h-[60px] leading-relaxed text-lg text-gray-800 font-serif">
-                                    {getStyledText(text, typingTexts[verse] || '', verse)}
-                                </div>
-                                
-                                <div className="relative">
-                                    <textarea
-                                        data-verse={verse}
-                                        value={typingTexts[verse] || ''}
-                                        onChange={(e) => handleTypingChange(verse, e.target.value)}
-                                        onKeyDown={(e) => handleKeyDown(e, verse)}
-                                        placeholder="이곳에 말씀을 타이핑하세요..."
-                                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[100px] text-lg leading-relaxed typing-textarea font-serif"
-                                    />
-                                    
-                                    <div className="absolute top-0 left-0 p-4 pointer-events-none text-lg leading-relaxed whitespace-pre-wrap w-full h-full font-serif">
-                                        {getTypingStyle(text, typingTexts[verse] || '')}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
+                      {mode === 'verse' ? (
+                          Object.keys(currentVerses).length > 0 ? (
+                              Object.entries(currentVerses).map(([verse, text]) => (
+                                  <div key={verse} className="border border-gray-200 rounded-lg p-4 sm:p-6">
+                                      <h3 className="text-lg font-semibold text-gray-700 mb-4">계시록 {currentChapter}:{verse}</h3>
+                                      <div className="mb-4 p-4 bg-gray-50 rounded-lg min-h-[60px] leading-relaxed text-lg">
+                                          {getStyledText(text, typingTexts[verse] || '', verse)}
+                                      </div>
+                                      <div className="relative border border-gray-300 rounded-lg">
+                                          <textarea
+                                              data-verse={verse}
+                                              value={typingTexts[verse] || ''}
+                                              onChange={(e) => handleTypingChange(verse, e.target.value)}
+                                              onKeyDown={(e) => handleKeyDown(e, verse)}
+                                              placeholder="여기에 타이핑하세요... (Enter: 다음 절로 이동)"
+                                              className="w-full p-4 focus:ring-2 focus:ring-blue-500 rounded-lg resize-none min-h-[100px] text-lg leading-relaxed typing-textarea relative z-10"
+                                          />
+                                          <div className="absolute top-0 left-0 w-full h-full p-4 pointer-events-none text-lg leading-relaxed whitespace-pre-wrap z-20">
+                                            {getTypingStyle(text, typingTexts[verse] || '')}
+                                          </div>
+                                      </div>
+                                  </div>
+                              ))
+                          ) : ( <p className="text-center text-gray-500">선택한 장의 본문이 없습니다.</p> )
                       ) : (
-                        <div className="text-center py-10 text-gray-500">
-                          <p>선택된 장의 데이터가 없습니다.</p>
-                        </div>
+                          // EXPERT MODE UI
+                          <div className="border border-gray-200 rounded-lg p-4 sm:p-6">
+                              <h3 className="text-lg font-semibold text-gray-700 mb-4">요한계시록 {currentChapter}장 전체 (고수 모드)</h3>
+                              <div className="mb-4 p-4 bg-gray-50 rounded-lg min-h-[120px] leading-relaxed text-lg whitespace-pre-wrap">
+                                  {expertResult ? expertResult : <p className="text-gray-400">타이핑을 완료하고 '검사하기' 버튼을 누르면 결과가 여기에 표시됩니다.</p>}
+                              </div>
+                              <textarea
+                                  value={expertText}
+                                  onChange={(e) => { setExpertText(e.target.value); if (expertResult) setExpertResult(null); }}
+                                  placeholder={`절 번호를 포함하여 입력하세요. (예: 1 ...)\n각 절은 엔터로 구분합니다.`}
+                                  className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none min-h-[250px] text-lg leading-relaxed"
+                              />
+                              <div className="mt-4 text-center">
+                                  <button onClick={handleExpertCheck} className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 smooth-transition">검사하기</button>
+                              </div>
+                          </div>
                       )}
                   </main>
                   
-                  <footer className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t">
+                  <footer className="fixed bottom-0 left-0 right-0 p-3 bg-white/80 backdrop-blur-sm border-t">
                       <div className="max-w-4xl mx-auto flex flex-wrap gap-2 justify-center items-center">
-                          <button onClick={() => setShowReference(!showReference)} className="flex items-center gap-2 px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 smooth-transition text-sm sm:text-base">
+                          <button onClick={toggleMode} className="flex items-center gap-2 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 smooth-transition text-sm sm:text-base">
+                              {mode === 'verse' ? <ChevronsRight/> : <Edit3/>}
+                              {mode === 'verse' ? '고수 모드' : '절별 모드'}
+                          </button>
+                          <button 
+                                onClick={() => setShowReference(!showReference)} 
+                                disabled={mode !== 'verse'}
+                                className="flex items-center gap-2 px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 smooth-transition text-sm sm:text-base disabled:bg-gray-300 disabled:cursor-not-allowed">
                               {showReference ? <EyeOff /> : <Eye />}
                               {showReference ? '본문 숨기기' : '본문 보기'}
                           </button>
-                          
-                          <button onClick={toggleRandomBlanks} className={`flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm sm:text-base ${
-                            showBlanks 
-                              ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                              : 'bg-green-500 text-white hover:bg-green-600'
-                          }`}>
+                          <button 
+                                onClick={toggleRandomBlanks} 
+                                disabled={mode !== 'verse'}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg smooth-transition text-sm sm:text-base ${ showBlanks ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-green-500 text-white hover:bg-green-600'} disabled:bg-gray-300 disabled:cursor-not-allowed`}>
                               <Shuffle />
                               {showBlanks ? '빈칸 해제' : '랜덤 빈칸'}
                           </button>
-                          
                           <button onClick={resetTyping} className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 smooth-transition text-sm sm:text-base">
                               <RotateCcw />
                               초기화
                           </button>
                           <div className="bg-blue-100 px-6 py-2 rounded-full shadow">
                               <span className="text-lg font-semibold text-blue-800">
-                                  암기율: {accuracy}%
+                                  암기율: {mode === 'verse' ? `${accuracy}%` : '-'}
                               </span>
                           </div>
                       </div>
@@ -952,8 +855,12 @@
           );
         };
 
+        // Note: The 'revelationText' object is very large. For brevity in this code block,
+        // it's represented by a comment. In a real scenario, this object would contain
+        // the full text of all 22 chapters of Revelation.
+        
         ReactDOM.render(<RevelationTypingApp />, document.getElementById('root'));
-
     </script>
 </body>
 </html>
+
