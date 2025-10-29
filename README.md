@@ -1,5 +1,5 @@
    <"계시록을 가지고 다니지 말고, 마음에 기록하면 될 것이다. 어렵지 않다">
-   <"줄 바뀔 때 텍스트 커서가 멀어지는 현상 해결, 한꺼번에 타이핑 하는 고수모두 추가>
+   <랜덤 성구 모드 추가>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -39,11 +39,11 @@
         );
         const Eye = (props) => (<IconWrapper {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></IconWrapper>);
         const EyeOff = (props) => (<IconWrapper {...props}><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" /><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" /><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" /><line x1="2" x2="22" y1="2" y2="22" /></IconWrapper>);
-        const Shuffle = (props) => (<IconWrapper {...props}><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" /><path d="m18 2 4 4-4 4" /><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2" /><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8" /><path d="m18 22-4-4 4-4" /></IconWrapper>);
+        const Shuffle = (props) => (<IconWrapper {...props}><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22" /><path d="m18 2 4 4-4 4" /><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2" /><path d="M22 18h-5.9c1.3 0 2.6-.7 3.3-1.8l.5-.8" /><path d="m18 22-4-4 4-4" /></IconWrapper>);
         const RotateCcw = (props) => (<IconWrapper {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></IconWrapper>);
         const ChevronsRight = (props) => (<IconWrapper {...props}><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></IconWrapper>);
         const Edit3 = (props) => (<IconWrapper {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></IconWrapper>);
-
+        const Dices = (props) => (<IconWrapper {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M16 8h.01"/><path d="M12 12h.01"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 8h.01"/></IconWrapper>);
         
         // --- Main Application Component ---
         const RevelationTypingApp = () => {
@@ -54,9 +54,10 @@
           const [randomBlanks, setRandomBlanks] = useState({});
           const [showBlanks, setShowBlanks] = useState(false);
           const [accuracy, setAccuracy] = useState(0);
-          const [mode, setMode] = useState('verse');
+          const [mode, setMode] = useState('verse'); // 'verse', 'expert', 'random'
           const [expertText, setExpertText] = useState('');
           const [expertResult, setExpertResult] = useState(null);
+          const [randomVerse, setRandomVerse] = useState(null); // { chapter, verse, text }
 
           // --- Korean Jamo Decomposer ---
           const CHOSEONG = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
@@ -342,7 +343,7 @@
                 11: "내가 보매 또 다른 짐승이 땅에서 올라오니 새끼양같이 두 뿔이 있고 용처럼 말하더라",
                 12: "저가 먼저 나온 짐승의 모든 권세를 그 앞에서 행하고 땅과 땅에 거하는 자들로 처음 짐승에게 경배하게 하니 곧 죽게 되었던 상처가 나은 자니라",
                 13: "큰 이적을 행하되 심지어 사람들 앞에서 불이 하늘로부터 땅에 내려 오게 하고",
-                14: "짐승 앞에서 받은바 이적을 행함으로 땅에 거하는 자들을 미혹하며 땅에 거하는 자들에게 이르기를 칼에 상하였다가 살아난 짐승을 위하여 우상을 만들라 하더라",
+                14: "짐승 앞에서 받은바 이적을 가지고 땅에 거하는 자들을 미혹하며 땅에 거하는 자들에게 이르기를 칼에 상하였다가 살아난 짐승을 위하여 우상을 만들라 하더라",
                 15: "저가 권세를 받아 그 짐승의 우상에게 생기를 주어 그 짐승의 우상으로 말하게 하고 또 짐승의 우상에게 경배하지 아니하는 자는 몇이든지 다 죽이게 하더라",
                 16: "저가 모든 자 곧 작은 자나 큰 자나 부자나 빈궁한 자나 자유한 자나 종들로 그 오른손에나 이마에 표를 받게 하고",
                 17: "누구든지 이 표를 가진 자 외에는 매매를 못하게 하니 이 표는 곧 짐승의 이름이나 그 이름의 수라",
@@ -545,7 +546,6 @@
           };
           const currentVerses = revelationText[currentChapter] || {};
           const expertReferenceText = useMemo(() => {
-              // Expert mode now includes verse numbers and newlines
               return Object.entries(currentVerses)
                   .map(([verse, text]) => `${verse} ${text}`)
                   .join('\n');
@@ -553,6 +553,7 @@
 
           // --- Effects ---
           useEffect(() => {
+              // Chapter change effect
               const initialTypingTexts = {};
               Object.keys(currentVerses).forEach(verse => { initialTypingTexts[verse] = ''; });
               setTypingTexts(initialTypingTexts);
@@ -560,9 +561,12 @@
               setShowBlanks(false);
               setExpertText('');
               setExpertResult(null);
+              setRandomVerse(null);
+              setMode('verse'); // Always reset to verse mode on chapter change
           }, [currentChapter]);
 
           useEffect(() => {
+              // Accuracy calculation effect
               if (mode !== 'verse') return;
               let totalChars = 0;
               let correctChars = 0;
@@ -630,27 +634,28 @@
               return matching;
           };
           
-          const getStyledText = (reference, typed, verse) => {
-              if (mode !== 'verse' || (!showReference && !showBlanks)) return '';
+          const getStyledText = (reference, typed, verseKey) => {
+              if (mode === 'verse' && !showReference && !showBlanks) return '';
+              if (mode === 'random' && !showReference) return ''; // Random mode check
 
-              if (showBlanks && randomBlanks[verse]) {
+              if (mode === 'verse' && showBlanks && randomBlanks[verseKey]) {
                   const words = reference.split(' ');
-                  const blankIndices = randomBlanks[verse];
+                  const blankIndices = randomBlanks[verseKey];
                   const styledWords = [];
                   let typedWords = typed.split(/\s+/);
 
                   words.forEach((word, wordIndex) => {
                       if (blankIndices.includes(wordIndex)) {
                           if (typedWords[wordIndex] && typedWords[wordIndex] === word) {
-                              styledWords.push(<span key={`blank-filled-${verse}-${wordIndex}`} className="text-blue-600 bg-blue-100">{word}</span>);
+                              styledWords.push(<span key={`blank-filled-${verseKey}-${wordIndex}`} className="text-blue-600 bg-blue-100">{word}</span>);
                           } else {
-                              styledWords.push(<span key={`blank-${verse}-${wordIndex}`} className="bg-gray-200 text-gray-200 rounded px-1">{"_".repeat(word.length)}</span>);
+                              styledWords.push(<span key={`blank-${verseKey}-${wordIndex}`} className="bg-gray-200 text-gray-200 rounded px-1">{"_".repeat(word.length)}</span>);
                           }
                       } else {
-                          styledWords.push(<span key={`word-${verse}-${wordIndex}`}>{word}</span>);
+                          styledWords.push(<span key={`word-${verseKey}-${wordIndex}`}>{word}</span>);
                       }
                       if (wordIndex < words.length - 1) {
-                          styledWords.push(<span key={`space-${verse}-${wordIndex}`}> </span>);
+                          styledWords.push(<span key={`space-${verseKey}-${wordIndex}`}> </span>);
                       }
                   });
                   return styledWords;
@@ -667,7 +672,7 @@
                               case 'wrong': case 'missing': className = 'text-red-500 bg-red-100'; break;
                           }
                       }
-                      return <span key={`ref-${verse}-${i}`} className={className}>{char}</span>;
+                      return <span key={`ref-${verseKey}-${i}`} className={className}>{char}</span>;
                   });
               }
 
@@ -689,15 +694,17 @@
               });
           };
 
-          const handleTypingChange = (verse, value) => {
-              setTypingTexts(prev => ({ ...prev, [verse]: value }));
+          const handleTypingChange = (verseKey, value) => {
+              setTypingTexts(prev => ({ ...prev, [verseKey]: value }));
           };
 
-          const handleKeyDown = (e, currentVerse) => {
+          const handleKeyDown = (e, currentVerseKey) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
+                  if (mode !== 'verse') return; // Only apply to verse mode
+
                   const verses = Object.keys(currentVerses).map(Number).sort((a, b) => a - b);
-                  const currentIndex = verses.indexOf(parseInt(currentVerse));
+                  const currentIndex = verses.indexOf(parseInt(currentVerseKey));
                   if (currentIndex < verses.length - 1) {
                       const nextVerse = verses[currentIndex + 1];
                       document.querySelector(`[data-verse="${nextVerse}"]`)?.focus();
@@ -708,9 +715,11 @@
           const resetTyping = () => {
               const resetTexts = {};
               Object.keys(currentVerses).forEach(verse => { resetTexts[verse] = ''; });
+              resetTexts['random'] = ''; // Also clear random typing text
               setTypingTexts(resetTexts);
               setExpertText('');
               setExpertResult(null);
+              // Do not reset randomVerse here, only clear the text
           };
           
           const toggleRandomBlanks = () => {
@@ -740,7 +749,25 @@
 
           const toggleMode = () => {
               setMode(prevMode => (prevMode === 'verse' ? 'expert' : 'verse'));
+              setRandomVerse(null); // Clear random verse when switching
               resetTyping();
+          };
+
+          const fetchRandomVerse = () => {
+              const chapterKeys = Object.keys(revelationText);
+              const randomChapterKey = chapterKeys[Math.floor(Math.random() * chapterKeys.length)];
+              const verseKeys = Object.keys(revelationText[randomChapterKey]);
+              const randomVerseKey = verseKeys[Math.floor(Math.random() * verseKeys.length)];
+              
+              setRandomVerse({
+                  chapter: randomChapterKey,
+                  verse: randomVerseKey,
+                  text: revelationText[randomChapterKey][randomVerseKey]
+              });
+              setMode('random');
+              // Removed: setShowReference(true); // Let user's preference persist
+              setTypingTexts(prev => ({ ...prev, random: '' }));
+              setExpertResult(null);
           };
 
           const handleExpertCheck = () => {
@@ -767,7 +794,12 @@
                       <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">요한계시록 암기 타이핑</h1>
                       <p className="text-center text-gray-500">말씀을 타이핑하며 암송하고 묵상하는 시간</p>
                       <div className="mt-6 flex flex-wrap gap-2 justify-center items-center">
-                          <select value={currentChapter} onChange={(e) => setCurrentChapter(parseInt(e.target.value))} className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base">
+                          <select 
+                              value={currentChapter} 
+                              onChange={(e) => setCurrentChapter(parseInt(e.target.value))} 
+                              disabled={mode === 'random'}
+                              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          >
                               {Array.from({ length: 22 }, (_, i) => i + 1).map(chapter => (
                                   <option key={chapter} value={chapter}>{chapter}장</option>
                               ))}
@@ -776,7 +808,7 @@
                   </header>
 
                   <main className="space-y-6">
-                      {mode === 'verse' ? (
+                      {mode === 'verse' && (
                           Object.keys(currentVerses).length > 0 ? (
                               Object.entries(currentVerses).map(([verse, text]) => (
                                   <div key={verse} className="border border-gray-200 rounded-lg p-4 sm:p-6">
@@ -800,8 +832,9 @@
                                   </div>
                               ))
                           ) : ( <p className="text-center text-gray-500">선택한 장의 본문이 없습니다.</p> )
-                      ) : (
-                          // EXPERT MODE UI
+                      )}
+                      
+                      {mode === 'expert' && (
                           <div className="border border-gray-200 rounded-lg p-4 sm:p-6">
                               <h3 className="text-lg font-semibold text-gray-700 mb-4">요한계시록 {currentChapter}장 전체 (고수 모드)</h3>
                               <div className="mb-4 p-4 bg-gray-50 rounded-lg min-h-[120px] leading-relaxed text-lg whitespace-pre-wrap">
@@ -818,17 +851,49 @@
                               </div>
                           </div>
                       )}
+
+                      {mode === 'random' && (
+                          randomVerse ? (
+                              <div className="border border-gray-200 rounded-lg p-4 sm:p-6">
+                                  <h3 className="text-lg font-semibold text-gray-700 mb-4">랜덤 성구 (계시록 {randomVerse.chapter}:{randomVerse.verse})</h3>
+                                  <div className="mb-4 p-4 bg-gray-50 rounded-lg min-h-[60px] leading-relaxed text-lg">
+                                      {getStyledText(randomVerse.text, typingTexts['random'] || '', 'random')}
+                                  </div>
+                                  <div className="relative border border-gray-300 rounded-lg">
+                                      <textarea
+                                          data-verse="random"
+                                          value={typingTexts['random'] || ''}
+                                          onChange={(e) => handleTypingChange('random', e.target.value)}
+                                          placeholder="여기에 타이핑하세요..."
+                                          className="w-full p-4 focus:ring-2 focus:ring-blue-500 rounded-lg resize-none min-h-[100px] text-lg leading-relaxed typing-textarea relative z-10"
+                                      />
+                                      <div className="absolute top-0 left-0 w-full h-full p-4 pointer-events-none text-lg leading-relaxed whitespace-pre-wrap z-20">
+                                        {getTypingStyle(randomVerse.text, typingTexts['random'] || '')}
+                                      </div>
+                                  </div>
+                              </div>
+                          ) : (
+                              <p className="text-center text-gray-500 py-10">하단의 '랜덤 성구' 버튼을 눌러 암송을 시작하세요.</p>
+                          )
+                      )}
                   </main>
                   
-                  <footer className="fixed bottom-0 left-0 right-0 p-3 bg-white/80 backdrop-blur-sm border-t">
+                  {/* Z-index 30 applied here to fix overlap bug */}
+                  <footer className="fixed bottom-0 left-0 right-0 p-3 bg-white/80 backdrop-blur-sm border-t z-30">
                       <div className="max-w-4xl mx-auto flex flex-wrap gap-2 justify-center items-center">
                           <button onClick={toggleMode} className="flex items-center gap-2 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 smooth-transition text-sm sm:text-base">
                               {mode === 'verse' ? <ChevronsRight/> : <Edit3/>}
                               {mode === 'verse' ? '고수 모드' : '절별 모드'}
                           </button>
                           <button 
+                                onClick={fetchRandomVerse} 
+                                className="flex items-center gap-2 px-3 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 smooth-transition text-sm sm:text-base">
+                              <Dices />
+                              랜덤 성구
+                          </button>
+                          <button 
                                 onClick={() => setShowReference(!showReference)} 
-                                disabled={mode !== 'verse'}
+                                disabled={mode === 'expert'}
                                 className="flex items-center gap-2 px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 smooth-transition text-sm sm:text-base disabled:bg-gray-300 disabled:cursor-not-allowed">
                               {showReference ? <EyeOff /> : <Eye />}
                               {showReference ? '본문 숨기기' : '본문 보기'}
